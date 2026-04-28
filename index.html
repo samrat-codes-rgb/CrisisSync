@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CrisisSync - Real-time emergency response platform for the hospitality industry">
+  <title>CrisisSync — Emergency Response Platform</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+</head>
+<body>
+  <div class="bg-pattern"></div>
+
+  <div class="login-page">
+    <div class="login-container">
+      <div class="login-header" style="animation: fadeIn 0.8s ease">
+        <div class="login-logo">CS</div>
+        <h1>Crisis<span>Sync</span></h1>
+        <p>Real-time emergency coordination for hospitality</p>
+      </div>
+
+      <div class="glass-card login-card" style="animation: slideIn 0.6s ease 0.2s both">
+        <div class="form-group">
+          <label class="form-label">Select Your Role</label>
+          <div class="role-selector">
+            <button class="role-btn active" data-role="guest" id="role-guest" onclick="selectRole('guest')">
+              <span class="role-icon">🏨</span>
+              Guest
+            </button>
+            <button class="role-btn" data-role="admin" id="role-admin" onclick="selectRole('admin')">
+              <span class="role-icon">🛡️</span>
+              Admin
+            </button>
+          </div>
+        </div>
+
+        <div id="guest-fields">
+          <div class="form-group">
+            <label class="form-label" for="room-input">Room Number</label>
+            <input type="text" id="room-input" class="form-input" placeholder="e.g. 302" value="302">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="guest-name">Your Name (optional)</label>
+            <input type="text" id="guest-name" class="form-input" placeholder="e.g. John">
+          </div>
+        </div>
+
+        <div id="admin-fields" style="display:none">
+          <div class="form-group">
+            <label class="form-label" for="admin-code">Admin Access Code</label>
+            <input type="password" id="admin-code" class="form-input" placeholder="Enter admin code">
+            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">Demo code: admin123</small>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg login-submit" id="login-btn" onclick="handleLogin()">
+          Continue as Guest →
+        </button>
+      </div>
+
+      <div class="login-footer" style="animation: fadeIn 1s ease 0.5s both">
+        Powered by Firebase · Built for GDG Hackathon 2026
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedRole = 'guest';
+
+    function selectRole(role) {
+      selectedRole = role;
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-role="${role}"]`).classList.add('active');
+      document.getElementById('guest-fields').style.display = role === 'guest' ? 'block' : 'none';
+      document.getElementById('admin-fields').style.display = role === 'admin' ? 'block' : 'none';
+      document.getElementById('login-btn').textContent = role === 'guest' ? 'Continue as Guest →' : 'Open Dashboard →';
+    }
+
+    function handleLogin() {
+      if (selectedRole === 'guest') {
+        const room = document.getElementById('room-input').value.trim() || '302';
+        const name = document.getElementById('guest-name').value.trim() || 'Guest';
+        localStorage.setItem('crisisync_role', 'guest');
+        localStorage.setItem('crisisync_room', room);
+        localStorage.setItem('crisisync_name', name);
+        window.location.href = 'guest.html';
+      } else {
+        const code = document.getElementById('admin-code').value;
+        if (code === 'admin123') {
+          localStorage.setItem('crisisync_role', 'admin');
+          window.location.href = 'admin.html';
+        } else {
+          const btn = document.getElementById('login-btn');
+          btn.style.background = 'var(--danger)';
+          btn.textContent = 'Invalid Code!';
+          setTimeout(() => {
+            btn.style.background = '';
+            btn.textContent = 'Open Dashboard →';
+          }, 1500);
+        }
+      }
+    }
+
+    // Enter key
+    document.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+  </script>
+</body>
+</html>
