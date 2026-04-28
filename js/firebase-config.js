@@ -3,13 +3,13 @@
 // Until then, the app uses a local in-memory database that works instantly!
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBjSIRRPzOXWCGteJtQlRmXeBgdhwPaTLo",
+  authDomain: "crysissync-6883f.firebaseapp.com",
+  databaseURL: "https://crysissync-6883f-default-rtdb.firebaseio.com",
+  projectId: "crysissync-6883f",
+  storageBucket: "crysissync-6883f.firebasestorage.app",
+  messagingSenderId: "801168164363",
+  appId: "1:801168164363:web:c5a4209951fd230bd1290e"
 };
 
 // ===== Smart Database Layer =====
