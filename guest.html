@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CrisisSync Guest Emergency Interface - Send SOS alerts instantly">
+  <title>CrisisSync — Guest SOS</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="page-wrapper">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <div class="logo">CS</div>
+        <h1>Crisis<span>Sync</span></h1>
+      </div>
+      <div class="navbar-actions">
+        <div class="nav-badge">
+          <span class="status-dot"></span>
+          <span>Live</span>
+        </div>
+        <button class="btn btn-outline btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="guest-main">
+      <div class="room-info" id="room-badge">
+        🏨 <strong id="room-display">Room 302</strong> &middot; <span id="guest-name-display">Guest</span>
+      </div>
+
+      <!-- SOS Section -->
+      <section class="sos-section">
+        <h2>Select Emergency Type &amp; Press SOS</h2>
+
+        <!-- Emergency Type Selector -->
+        <div class="emergency-select-wrapper">
+          <div class="type-grid" id="type-grid">
+            <button class="type-btn active fire" data-type="fire">
+              <span class="type-icon">🔥</span> Fire
+            </button>
+            <button class="type-btn" data-type="medical">
+              <span class="type-icon">🏥</span> Medical
+            </button>
+            <button class="type-btn" data-type="security">
+              <span class="type-icon">🔒</span> Security
+            </button>
+          </div>
+        </div>
+
+        <!-- SOS Button -->
+        <div class="sos-wrapper" style="margin-top: 36px;">
+          <div class="sos-ring"></div>
+          <div class="sos-ring"></div>
+          <div class="sos-ring"></div>
+          <button class="sos-btn" id="sos-btn">
+            SOS
+            <span class="sos-sub">PRESS FOR HELP</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Extras -->
+      <div class="guest-extras">
+        <!-- Recent Alerts -->
+        <div class="glass-card guest-status-card">
+          <h3>📋 Your Recent Alerts</h3>
+          <ul class="alert-history" id="alert-history">
+            <li style="color: var(--text-muted); justify-content: center;">No alerts sent yet</li>
+          </ul>
+        </div>
+
+        <!-- Map -->
+        <div class="glass-card guest-status-card">
+          <h3>📍 Hotel Location</h3>
+          <div class="map-container" id="guest-map-container">
+            <div id="guest-map"></div>
+          </div>
+        </div>
+
+        <!-- AI Detection Panel -->
+        <div class="glass-card guest-status-card ai-panel">
+          <h3>🤖 AI Detection System</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+            Simulated AI sensor monitoring for your room. Press to simulate an automated fire detection.
+          </p>
+          <div class="ai-status">
+            <div class="ai-indicator" id="ai-indicator">
+              <span class="status-dot"></span> Sensors Normal
+            </div>
+            <button class="btn btn-outline btn-sm" id="ai-trigger-btn">
+              🔬 Simulate Fire Detection
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offline-banner">
+      ⚠️ You are offline. Alerts will be queued and sent when connection is restored. SMS fallback activated.
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+
+  <!-- Leaflet Map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Guest Logic -->
+  <script src="js/guest.js"></script>
+</body>
+</html>
