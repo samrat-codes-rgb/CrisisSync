@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Delegate Resolve / Delete buttons inside alert cards ---
+  // --- Delegate Resolve / Delete / Message buttons inside alert cards ---
   document.addEventListener('click', function(e) {
     const resolveBtn = e.target.closest('.resolve-alert-btn');
     if (resolveBtn) {
@@ -82,6 +82,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const key = deleteBtn.getAttribute('data-key');
       if (key) deleteAlert(key);
       return;
+    }
+
+    // Quick-reply buttons
+    const quickBtn = e.target.closest('.quick-reply-btn');
+    if (quickBtn) {
+      e.preventDefault();
+      const key = quickBtn.getAttribute('data-key');
+      const msg = quickBtn.getAttribute('data-msg');
+      if (key && msg) sendQuickReply(key, msg, quickBtn);
+      return;
+    }
+
+    // Send custom message button
+    const sendBtn = e.target.closest('.send-msg-btn');
+    if (sendBtn) {
+      e.preventDefault();
+      const key = sendBtn.getAttribute('data-key');
+      if (key) sendCustomMessage(key);
+      return;
+    }
+  });
+
+  // Allow Enter key to send custom messages
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('custom-msg-input')) {
+      e.preventDefault();
+      const key = e.target.getAttribute('data-key');
+      if (key) sendCustomMessage(key);
     }
   });
 });
@@ -167,6 +195,43 @@ function renderAlertCard(key, alert) {
     ? '<span style="font-size:0.75rem; color:var(--warning); margin-left:8px;">🤖 AI</span>'
     : '';
 
+  // Show admin message history if present
+  const msgHistory = alert.adminMessages
+    ? Object.values(alert.adminMessages)
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .map(m => `<div class="admin-msg-item">
+          <span class="admin-msg-text">${m.message}</span>
+          <span class="admin-msg-time">${formatTime(m.timestamp)}</span>
+        </div>`).join('')
+    : '';
+
+  const lastMsg = alert.adminMessage
+    ? `<div class="admin-last-msg">💬 <em>${alert.adminMessage}</em></div>`
+    : '';
+
+  // Response panel for active alerts
+  const responsePanel = isActive ? `
+    <div class="admin-response-panel">
+      <div class="response-label">📨 Respond to Guest</div>
+      <div class="quick-replies">
+        <button class="quick-reply-btn" data-key="${key}" data-msg="🚐 Team dispatched to your location">
+          🚐 Dispatched Team
+        </button>
+        <button class="quick-reply-btn" data-key="${key}" data-msg="🏃 Help is on the way! Stay calm.">
+          🏃 On the Way
+        </button>
+        <button class="quick-reply-btn resolve-quick" data-key="${key}" data-msg="✅ Situation resolved. You are safe.">
+          ✅ Resolved
+        </button>
+      </div>
+      <div class="custom-msg-row">
+        <input type="text" class="custom-msg-input" data-key="${key}" placeholder="Type a custom message..." maxlength="200" />
+        <button class="btn btn-primary btn-sm send-msg-btn" data-key="${key}">Send</button>
+      </div>
+      ${msgHistory ? `<div class="admin-msg-history">${msgHistory}</div>` : ''}
+    </div>
+  ` : '';
+
   return `
     <div class="glass-card alert-card ${alert.status}">
       <div class="alert-card-header">
@@ -179,7 +244,9 @@ function renderAlertCard(key, alert) {
         <div class="alert-detail">🚪 Room: <strong>${alert.room}</strong>${sourceTag}</div>
         <div class="alert-detail">👤 Reported by: <strong>${alert.guestName || 'Unknown'}</strong></div>
         <div class="alert-detail">🕐 Time: <strong>${formatDate(alert.timestamp)}</strong></div>
+        ${lastMsg}
       </div>
+      ${responsePanel}
       <div class="alert-card-actions">
         ${isActive
           ? `<button class="btn btn-success btn-sm resolve-alert-btn" data-key="${key}">✓ Resolve</button>
@@ -211,9 +278,101 @@ function animateCounter(id, target) {
 
 // --- Resolve Alert ---
 function resolveAlert(key) {
-  db.ref('alerts/' + key).update({ status: 'resolved' })
+  db.ref('alerts/' + key).update({
+    status: 'resolved',
+    adminMessage: '✅ Situation resolved. You are safe.',
+    resolvedAt: Date.now()
+  })
     .then(() => showToast('✅ Alert resolved successfully', 'success', 3000))
     .catch(err => showToast('❌ Failed to resolve: ' + err.message, 'danger'));
+}
+
+// --- Send Quick Reply ---
+function sendQuickReply(key, message, btnEl) {
+  // Visual feedback
+  const originalText = btnEl.textContent;
+  btnEl.textContent = '⏳ Sending...';
+  btnEl.disabled = true;
+
+  const msgData = {
+    message: message,
+    timestamp: Date.now(),
+    sender: 'admin'
+  };
+
+  // Update the alert's adminMessage (latest) and push to message history
+  const updates = {
+    adminMessage: message
+  };
+
+  db.ref('alerts/' + key).update(updates)
+    .then(() => {
+      // Also push to adminMessages sub-collection
+      db.ref('alerts/' + key + '/adminMessages').push(msgData);
+      showToast(`💬 Message sent: "${message}"`, 'success', 3000);
+      btnEl.textContent = '✓ Sent';
+      btnEl.classList.add('sent');
+
+      // If it's a "Resolved" quick reply, also resolve the alert
+      if (btnEl.classList.contains('resolve-quick')) {
+        setTimeout(() => {
+          resolveAlert(key);
+        }, 500);
+      }
+
+      setTimeout(() => {
+        btnEl.textContent = originalText;
+        btnEl.disabled = false;
+        btnEl.classList.remove('sent');
+      }, 2000);
+    })
+    .catch(err => {
+      showToast('❌ Failed to send message: ' + err.message, 'danger');
+      btnEl.textContent = originalText;
+      btnEl.disabled = false;
+    });
+}
+
+// --- Send Custom Message ---
+function sendCustomMessage(key) {
+  const input = document.querySelector(`.custom-msg-input[data-key="${key}"]`);
+  if (!input) return;
+  const message = input.value.trim();
+  if (!message) {
+    showToast('⚠️ Please type a message first', 'warning', 2000);
+    input.focus();
+    return;
+  }
+
+  const sendBtn = document.querySelector(`.send-msg-btn[data-key="${key}"]`);
+  if (sendBtn) {
+    sendBtn.textContent = '⏳';
+    sendBtn.disabled = true;
+  }
+
+  const msgData = {
+    message: message,
+    timestamp: Date.now(),
+    sender: 'admin'
+  };
+
+  db.ref('alerts/' + key).update({ adminMessage: message })
+    .then(() => {
+      db.ref('alerts/' + key + '/adminMessages').push(msgData);
+      showToast(`💬 Custom message sent to guest`, 'success', 3000);
+      input.value = '';
+      if (sendBtn) {
+        sendBtn.textContent = 'Send';
+        sendBtn.disabled = false;
+      }
+    })
+    .catch(err => {
+      showToast('❌ Failed to send message: ' + err.message, 'danger');
+      if (sendBtn) {
+        sendBtn.textContent = 'Send';
+        sendBtn.disabled = false;
+      }
+    });
 }
 
 // --- Delete Alert ---

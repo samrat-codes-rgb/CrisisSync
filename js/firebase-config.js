@@ -129,6 +129,23 @@ function createLocalDB() {
     ref(path) {
       return {
         push(value) {
+          const parts = path.split('/');
+          if (parts[0] === 'alerts' && parts.length >= 3) {
+            // Nested push: alerts/{alertKey}/adminMessages
+            const data = getData();
+            const alertKey = parts[1];
+            const subKey = parts[2];
+            if (data[alertKey]) {
+              if (!data[alertKey][subKey]) data[alertKey][subKey] = {};
+              const id = generateId();
+              data[alertKey][subKey][id] = value;
+              setData(data);
+              notifyListeners('alerts');
+              return Promise.resolve({ key: id });
+            }
+            return Promise.resolve({ key: generateId() });
+          }
+          // Top-level push (default)
           const data = getData();
           const id = generateId();
           data[id] = value;
@@ -137,9 +154,9 @@ function createLocalDB() {
           return Promise.resolve({ key: id });
         },
         update(value) {
-          // path is like 'alerts/-abc123'
           const parts = path.split('/');
-          if (parts.length >= 2) {
+          if (parts[0] === 'alerts' && parts.length >= 2) {
+            // alerts/-abc123 style path
             const data = getData();
             const key = parts[1];
             if (data[key]) {
@@ -147,6 +164,15 @@ function createLocalDB() {
               setData(data);
               notifyListeners('alerts');
             }
+          } else if (parts[0] === 'locations' && parts.length >= 2) {
+            // locations/302 style path — store in separate localStorage key
+            const locKey = 'crisisync_locations';
+            let locData;
+            try { locData = JSON.parse(localStorage.getItem(locKey)) || {}; }
+            catch { locData = {}; }
+            const roomKey = parts[1];
+            locData[roomKey] = Object.assign(locData[roomKey] || {}, value);
+            localStorage.setItem(locKey, JSON.stringify(locData));
           }
           return Promise.resolve();
         },

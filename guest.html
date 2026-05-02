@@ -28,6 +28,26 @@
       </div>
     </nav>
 
+    <!-- Location Permission Banner -->
+    <div class="location-permission-banner" id="location-permission-banner">
+      <div class="loc-banner-inner">
+        <div class="loc-banner-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <div class="loc-banner-content">
+          <h4 class="loc-banner-title">📍 Enable Your Location</h4>
+          <p class="loc-banner-desc">CrisisSync needs your location to send accurate emergency alerts and help responders find you quickly.</p>
+        </div>
+        <div class="loc-banner-actions">
+          <button class="btn btn-danger btn-sm" id="banner-enable-location">📍 Enable Location Now</button>
+          <button class="btn btn-outline btn-sm" id="banner-dismiss" style="font-size: 0.75rem;">Maybe Later</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Content -->
     <main class="guest-main">
       <div class="room-info" id="room-badge">
@@ -63,6 +83,14 @@
             <span class="sos-sub">PRESS FOR HELP</span>
           </button>
         </div>
+
+        <!-- Cancel SOS Button (hidden by default) -->
+        <div class="cancel-sos-wrapper" id="cancel-sos-wrapper" style="display: none;">
+          <button class="btn cancel-sos-btn" id="cancel-sos-btn">
+            ✕ Cancel SOS Alert
+          </button>
+          <p class="cancel-hint">Your alert is active. Cancel if sent by mistake.</p>
+        </div>
       </section>
 
       <!-- Extras -->
@@ -75,9 +103,25 @@
           </ul>
         </div>
 
-        <!-- Map -->
-        <div class="glass-card guest-status-card">
-          <h3>📍 Hotel Location</h3>
+        <!-- Admin Messages -->
+        <div class="glass-card guest-status-card admin-msgs-card" id="admin-msgs-card" style="display: none;">
+          <h3>💬 Messages from Staff</h3>
+          <div class="admin-msgs-list" id="admin-msgs-list"></div>
+        </div>
+
+        <!-- Live Location Card -->
+        <div class="glass-card guest-status-card location-card">
+          <div class="loc-card-header">
+            <div class="loc-card-title-row">
+              <h3 style="margin: 0;">📍 Your Live Location</h3>
+              <div class="loc-status-badge">
+                <span class="loc-status-dot pending" id="location-status-indicator"></span>
+                <span id="location-status-text" style="color: var(--warning);">Location Pending</span>
+              </div>
+            </div>
+            <button id="enable-location-btn" class="btn btn-outline btn-sm">Enable Location</button>
+          </div>
+          <p id="location-coords" class="loc-coords-text">Location not shared yet.</p>
           <div class="map-container" id="guest-map-container">
             <div id="guest-map"></div>
           </div>
